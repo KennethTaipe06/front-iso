@@ -1,0 +1,161 @@
+.ver-doc-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #F8FAFC;
+  overflow: hidden; /* Para que el scroll sea interno */
+}
+
+/* Header simple de navegación */
+.doc-navbar {
+  background: white;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-back:hover { color: #5B43F1; }
+
+.btn-download {
+  background-color: #5B43F1;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+/* Layout Principal */
+.doc-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Columna Izquierda: Visor PDF */
+.pdf-viewer-section {
+  flex: 1; /* Ocupa todo el espacio posible */
+  background: #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.pdf-placeholder {
+  background: white;
+  width: 100%;
+  max-width: 800px;
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* Columna Derecha: Sidebar */
+.info-sidebar {
+  width: 400px; /* Ancho fijo */
+  background: white;
+  border-left: 1px solid #E2E8F0;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Tarjetas del Sidebar */
+.info-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.2rem;
+}
+
+.info-card h3 {
+  font-size: 0.95rem;
+  color: #1E293B;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Estilos específicos para la IA */
+.ai-card {
+  border: 1px solid #C4B5FD; /* Borde morado suave */
+  background: #F5F3FF;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #5B43F1;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.ai-suggestion {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  border-left: 3px solid #F59E0B; /* Naranja de advertencia */
+  font-size: 0.85rem;
+  color: #4B5563;
+  margin-bottom: 0.8rem;
+}
+
+.ai-action-btn {
+  width: 100%;
+  background: #5B43F1;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Etiquetas y detalles */
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+}
+.label { color: #64748B; }
+.value { color: #0F172A; font-weight: 500; }
+
+.control-tag {
+  display: inline-block;
+  background: #DCFCE7;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
