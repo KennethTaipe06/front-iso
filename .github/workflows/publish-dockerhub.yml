@@ -17,37 +17,37 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+                uses: actions/checkout@v4
 
             - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+                uses: docker/setup-qemu-action@v3
 
             - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+                uses: docker/setup-buildx-action@v3
 
             - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_PASSWORD }}
+                uses: docker/login-action@v3
+                with:
+                    username: ${{ secrets.DOCKERHUB_USERNAME }}
+                    password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
             - name: Docker metadata
-              id: meta
-              uses: docker/metadata-action@v5
-              with:
-                  images: byvoxel/front-iso
-                  tags: |
-                      type=raw,value=latest
-                      type=sha,format=short
+                id: meta
+                uses: docker/metadata-action@v5
+                with:
+                    images: byvoxel/front-iso
+                    tags: |
+                        type=raw,value=latest
+                        type=sha,format=short
 
             - name: Build and push
-              uses: docker/build-push-action@v6
-              with:
-                  context: .
-                  push: true
-                  platforms: linux/amd64,linux/arm64
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
+                uses: docker/build-push-action@v6
+                with:
+                    context: .
+                    push: true
+                    platforms: linux/amd64,linux/arm64
+                    tags: ${{ steps.meta.outputs.tags }}
+                    labels: ${{ steps.meta.outputs.labels }}
 
     deploy-self-hosted:
         runs-on: self-hosted
@@ -62,30 +62,48 @@ jobs:
 
         steps:
             - name: Login to Docker Hub (optional for public images)
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_PASSWORD }}
+                uses: docker/login-action@v3
+                with:
+                    username: ${{ secrets.DOCKERHUB_USERNAME }}
+                    password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-            - name: Deploy container
-              shell: pwsh
-              run: |
-                  $imageName = $env:IMAGE_NAME
+            - name: Deploy container (Linux)
+                if: runner.os != 'Windows'
+                shell: bash
+                run: |
+                    set -euo pipefail
 
-                  # Usa el tag sha-<7> (igual que metadata-action type=sha,format=short)
-                  $sha7 = $env:GITHUB_SHA.Substring(0,7)
-                  $tag = "sha-$sha7"
-                  $image = "$imageName:$tag"
+                    sha7="${GITHUB_SHA:0:7}"
+                    tag="sha-${sha7}"
+                    image="${IMAGE_NAME}:${tag}"
 
-                  $containerName = if ([string]::IsNullOrWhiteSpace($env:CONTAINER_NAME)) { "front-iso" } else { $env:CONTAINER_NAME }
-                  $hostPort = if ([string]::IsNullOrWhiteSpace($env:HOST_PORT)) { "8080" } else { $env:HOST_PORT }
+                    containerName="${CONTAINER_NAME:-front-iso}"
+                    hostPort="${HOST_PORT:-8080}"
 
-                  Write-Host "Pull: $image"
-                  docker pull $image
+                    echo "Pull: ${image}"
+                    docker pull "${image}"
 
-                  Write-Host "Restart container: $containerName"
-                  docker rm -f $containerName 2>$null
+                    echo "Restart container: ${containerName}"
+                    docker rm -f "${containerName}" >/dev/null 2>&1 || true
 
-                  docker run -d --restart unless-stopped --name $containerName -p "$hostPort`:80" $image
+                    docker run -d --restart unless-stopped --name "${containerName}" -p "${hostPort}:80" "${image}"
+                    echo "Deploy OK -> http://<self-hosted-host>:${hostPort}"
 
-                  Write-Host "Deploy OK -> http://<self-hosted-host>:$hostPort"
+            - name: Deploy container (Windows)
+                if: runner.os == 'Windows'
+                shell: powershell
+                run: |
+                    $sha7 = $env:GITHUB_SHA.Substring(0,7)
+                    $tag = "sha-$sha7"
+                    $image = "$env:IMAGE_NAME:$tag"
+
+                    $containerName = if ([string]::IsNullOrWhiteSpace($env:CONTAINER_NAME)) { "front-iso" } else { $env:CONTAINER_NAME }
+                    $hostPort = if ([string]::IsNullOrWhiteSpace($env:HOST_PORT)) { "8080" } else { $env:HOST_PORT }
+
+                    Write-Host "Pull: $image"
+                    docker pull $image
+
+                    docker rm -f $containerName 2>$null
+                    docker run -d --restart unless-stopped --name $containerName -p "$hostPort`:80" $image
+
+                    Write-Host "Deploy OK -> http://<self-hosted-host>:$hostPort"
