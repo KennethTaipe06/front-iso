@@ -1,0 +1,61 @@
+name: CD (self-hosted)
+
+on:
+    push:
+        branches: ["main"]
+    workflow_dispatch:
+
+concurrency:
+    group: cd-self-hosted-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build-and-deploy:
+        runs-on: self-hosted
+
+        env:
+            CI: "true"
+            DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install
+              run: npm ci
+
+            - name: Test
+              run: npm test -- --watchAll=false
+
+            - name: Build
+              run: npm run build
+
+            - name: Deploy to self-hosted path
+              shell: pwsh
+              run: |
+                  if ([string]::IsNullOrWhiteSpace($env:DEPLOY_PATH)) {
+                    throw "DEPLOY_PATH no está configurado. Crea una Repository Variable llamada DEPLOY_PATH con la ruta destino (ej: C:\\inetpub\\wwwroot\\front-iso)."
+                  }
+
+                  $source = Join-Path $PWD "build"
+                  if (-not (Test-Path $source)) {
+                    throw "No se encontró el directorio de build: $source"
+                  }
+
+                  $target = $env:DEPLOY_PATH
+                  New-Item -ItemType Directory -Force -Path $target | Out-Null
+
+                  # Limpia el destino (excepto web.config si lo usas para IIS)
+                  Get-ChildItem -Path $target -Force -ErrorAction SilentlyContinue |
+                    Where-Object { $_.Name -ne 'web.config' } |
+                    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+                  Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
+
+                  Write-Host "Deploy completado a: $target"
