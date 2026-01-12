@@ -59,10 +59,19 @@ function Chat() {
                 }),
             });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            let data;
+            if (contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                const textBody = await response.text();
+                throw new Error(
+                    `Respuesta no-JSON (${response.status}). Probable proxy faltante. Body inicia con: ${textBody.slice(0, 60)}`
+                );
+            }
 
             if (!response.ok) {
-                throw new Error(data?.detail || 'No se pudo obtener respuesta del chat');
+                throw new Error(data?.detail || `No se pudo obtener respuesta del chat (${response.status})`);
             }
 
             const assistantMessage = {
@@ -77,7 +86,7 @@ function Chat() {
             setTimeout(scrollToBottom, 0);
         } catch (e) {
             console.error(e);
-            setError('Error consultando el chat. Verifica conectividad o el proxy.');
+            setError(e?.message || 'Error consultando el chat. Verifica conectividad o el proxy.');
         } finally {
             setLoading(false);
         }
