@@ -56,7 +56,7 @@ jobs:
         run: docker pull ${{ env.IMAGE_NAME }}:latest
       
       - name: Run new container
-        run: docker run -d --name ${{ env.CONTAINER_NAME }} --restart unless-stopped -p 80:80 ${{ env.IMAGE_NAME }}:latest
+        run: docker run -d --name ${{ env.CONTAINER_NAME }} --restart unless-stopped -p 81:80 ${{ env.IMAGE_NAME }}:latest
       
       - name: Verify deployment
         run: docker ps --filter "name=${{ env.CONTAINER_NAME }}"
