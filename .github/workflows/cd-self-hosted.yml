@@ -1,4 +1,4 @@
-name: CD (self-hosted)
+name: CD (self-hosted manual deploy)
 
 on:
     workflow_dispatch:
@@ -18,26 +18,28 @@ jobs:
             HOST_PORT: ${{ vars.HOST_PORT }}
 
         steps:
-            - name: Login to Docker Hub (optional for public images)
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+            -
+                name: Login to Docker Hub (optional for public images)
+                uses: docker/login-action@v3
+                with:
+                    username: ${{ secrets.DOCKERHUB_USERNAME }}
+                    password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-            - name: Deploy container (manual)
-              shell: pwsh
-              run: |
-                  $imageName = if ([string]::IsNullOrWhiteSpace($env:IMAGE_NAME)) { "byvoxel/front-iso" } else { $env:IMAGE_NAME }
-                  $tag = if ([string]::IsNullOrWhiteSpace($env:IMAGE_TAG)) { "latest" } else { $env:IMAGE_TAG }
-                  $image = "$imageName:$tag"
+            -
+                name: Deploy container (manual)
+                shell: pwsh
+                run: |
+                    $imageName = if ([string]::IsNullOrWhiteSpace($env:IMAGE_NAME)) { "byvoxel/front-iso" } else { $env:IMAGE_NAME }
+                    $tag = if ([string]::IsNullOrWhiteSpace($env:IMAGE_TAG)) { "latest" } else { $env:IMAGE_TAG }
+                    $image = "$imageName:$tag"
 
-                  $containerName = if ([string]::IsNullOrWhiteSpace($env:CONTAINER_NAME)) { "front-iso" } else { $env:CONTAINER_NAME }
-                  $hostPort = if ([string]::IsNullOrWhiteSpace($env:HOST_PORT)) { "8080" } else { $env:HOST_PORT }
+                    $containerName = if ([string]::IsNullOrWhiteSpace($env:CONTAINER_NAME)) { "front-iso" } else { $env:CONTAINER_NAME }
+                    $hostPort = if ([string]::IsNullOrWhiteSpace($env:HOST_PORT)) { "8080" } else { $env:HOST_PORT }
 
-                  Write-Host "Pull: $image"
-                  docker pull $image
+                    Write-Host "Pull: $image"
+                    docker pull $image
 
-                  docker rm -f $containerName 2>$null
-                  docker run -d --restart unless-stopped --name $containerName -p "$hostPort`:80" $image
+                    docker rm -f $containerName 2>$null
+                    docker run -d --restart unless-stopped --name $containerName -p "$hostPort`:80" $image
 
-                  Write-Host "Deploy OK -> http://<self-hosted-host>:$hostPort"
+                    Write-Host "Deploy OK -> http://<self-hosted-host>:$hostPort"
