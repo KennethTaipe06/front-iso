@@ -1,5 +1,21 @@
 # Getting Started with Create React App
 
+## Docker
+
+### Build local
+
+`docker build -t front-iso:local .`
+
+### Run local
+
+`docker run --rm -p 8080:80 front-iso:local`
+
+Abre `http://localhost:8080`.
+
+### Docker Hub (CI)
+
+El workflow publica la imagen como `byvoxel/front-iso` (tags `latest` y `sha-...`).
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
