@@ -1,4 +1,4 @@
-name: Publish Docker image (Docker Hub)
+name: CD (Docker Hub build+push + self-hosted deploy)
 
 on:
     push:
@@ -6,11 +6,11 @@ on:
     workflow_dispatch:
 
 concurrency:
-    group: dockerhub-${{ github.ref }}
+    group: cd-dockerhub-selfhosted-${{ github.ref }}
     cancel-in-progress: true
 
 jobs:
-    dockerhub:
+    build-and-push:
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -48,3 +48,44 @@ jobs:
                   platforms: linux/amd64,linux/arm64
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+
+    deploy-self-hosted:
+        runs-on: self-hosted
+        needs: build-and-push
+        permissions:
+            contents: read
+
+        env:
+            IMAGE_NAME: byvoxel/front-iso
+            CONTAINER_NAME: ${{ vars.CONTAINER_NAME }}
+            HOST_PORT: ${{ vars.HOST_PORT }}
+
+        steps:
+            - name: Login to Docker Hub (optional for public images)
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Deploy container
+              shell: pwsh
+              run: |
+                  $imageName = $env:IMAGE_NAME
+
+                  # Usa el tag sha-<7> (igual que metadata-action type=sha,format=short)
+                  $sha7 = $env:GITHUB_SHA.Substring(0,7)
+                  $tag = "sha-$sha7"
+                  $image = "$imageName:$tag"
+
+                  $containerName = if ([string]::IsNullOrWhiteSpace($env:CONTAINER_NAME)) { "front-iso" } else { $env:CONTAINER_NAME }
+                  $hostPort = if ([string]::IsNullOrWhiteSpace($env:HOST_PORT)) { "8080" } else { $env:HOST_PORT }
+
+                  Write-Host "Pull: $image"
+                  docker pull $image
+
+                  Write-Host "Restart container: $containerName"
+                  docker rm -f $containerName 2>$null
+
+                  docker run -d --restart unless-stopped --name $containerName -p "$hostPort`:80" $image
+
+                  Write-Host "Deploy OK -> http://<self-hosted-host>:$hostPort"
