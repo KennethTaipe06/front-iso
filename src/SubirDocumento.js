@@ -18,7 +18,7 @@ function SubirDocumento() {
   const [proceso, setProceso] = useState('');
   const [version, setVersion] = useState('1.0');
   const [control, setControl] = useState('5.1.1'); // Nuevo estado para el control
-  
+
   const [loading, setLoading] = useState(false);
 
   // Manejadores de Archivo
@@ -36,13 +36,13 @@ function SubirDocumento() {
 
   const processFile = (selectedFile) => {
     if (selectedFile && selectedFile.type === 'application/pdf') {
-        setFile(selectedFile);
-        if (!titulo) {
-          setTitulo(selectedFile.name.replace('.pdf', '').replace(/-/g, ' '));
-        }
-      } else {
-        alert('Por favor, sube solo archivos PDF.');
+      setFile(selectedFile);
+      if (!titulo) {
+        setTitulo(selectedFile.name.replace('.pdf', '').replace(/-/g, ' '));
       }
+    } else {
+      alert('Por favor, sube solo archivos PDF.');
+    }
   };
 
   const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-active'); };
@@ -62,28 +62,28 @@ function SubirDocumento() {
     formData.append('control_id', control);
 
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/documentos/', {
-            method: 'POST',
-            // NO poner Content-Type header manualmente cuando se usa FormData,
-            // el navegador lo pone automáticamente con el "boundary" correcto.
-            headers: {
-                // 'Authorization': `Bearer ${token}` // Descomenta si activas seguridad en este endpoint
-            },
-            body: formData
-        });
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/documentos/', {
+        method: 'POST',
+        // NO poner Content-Type header manualmente cuando se usa FormData,
+        // el navegador lo pone automáticamente con el "boundary" correcto.
+        headers: {
+          // 'Authorization': `Bearer ${token}` // Descomenta si activas seguridad en este endpoint
+        },
+        body: formData
+      });
 
-        if (response.ok) {
-            // Éxito: Redirigir a la biblioteca
-            navigate('/biblioteca');
-        } else {
-            alert("Error al guardar el documento");
-            console.error(await response.text());
-        }
+      if (response.ok) {
+        // Éxito: Redirigir a la biblioteca
+        navigate('/biblioteca');
+      } else {
+        alert("Error al guardar el documento");
+        console.error(await response.text());
+      }
     } catch (error) {
-        console.error("Error de red:", error);
+      console.error("Error de red:", error);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -93,13 +93,14 @@ function SubirDocumento() {
     <div className="subir-container">
       {/* Header */}
       <header className="biblioteca-header">
-        <div className="logo-nombre" onClick={() => navigate('/biblioteca')} style={{cursor: 'pointer'}}>
+        <div className="logo-nombre" onClick={() => navigate('/biblioteca')} style={{ cursor: 'pointer' }}>
           <div className="icono-logo">📚</div>
           <span className="nombre-app">ISOOne</span>
         </div>
         <nav className="nav-bar">
           <button className="nav-item" onClick={() => navigate('/biblioteca')}>Biblioteca</button>
           <button className="nav-item active">Subir Documento</button>
+          <button className="nav-item" onClick={() => navigate('/chat')}>Chat</button>
           <button className="nav-item">Usuarios</button>
         </nav>
         <div className="usuario-info">
@@ -113,15 +114,15 @@ function SubirDocumento() {
           <p className="step-desc">Sube el PDF y asigna sus controles ISO correspondientes.</p>
 
           {/* Area Upload */}
-          <div 
+          <div
             className="upload-area"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current.click()}
           >
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="application/pdf" style={{display: 'none'}} />
-            
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="application/pdf" style={{ display: 'none' }} />
+
             {!file ? (
               <>
                 <span className="upload-icon">📤</span>
@@ -134,7 +135,7 @@ function SubirDocumento() {
               <div className="file-selected-info">
                 <span>📄</span>
                 <strong>{file.name}</strong>
-                <span style={{marginLeft: 'auto', cursor:'pointer', color:'#EF4444'}} onClick={(e) => { e.stopPropagation(); setFile(null); }}>✕</span>
+                <span style={{ marginLeft: 'auto', cursor: 'pointer', color: '#EF4444' }} onClick={(e) => { e.stopPropagation(); setFile(null); }}>✕</span>
               </div>
             )}
           </div>
@@ -145,20 +146,20 @@ function SubirDocumento() {
             <input type="text" className="form-input" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
           </div>
 
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem'}}>
-              <div className="form-group">
-                <label className="form-label">Tipo</label>
-                <select className="form-select" value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                  {tiposDocumento.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label className="form-label">Tipo</label>
+              <select className="form-select" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+                {tiposDocumento.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
 
-              <div className="form-group">
-                <label className="form-label">Control ISO Principal</label>
-                <select className="form-select" value={control} onChange={(e) => setControl(e.target.value)}>
-                  {controlesISO.map(c => <option key={c} value={c}>A.{c}</option>)}
-                </select>
-              </div>
+            <div className="form-group">
+              <label className="form-label">Control ISO Principal</label>
+              <select className="form-select" value={control} onChange={(e) => setControl(e.target.value)}>
+                {controlesISO.map(c => <option key={c} value={c}>A.{c}</option>)}
+              </select>
+            </div>
           </div>
 
           <div className="form-group">
@@ -168,12 +169,12 @@ function SubirDocumento() {
 
           <div className="form-group">
             <label className="form-label">Versión</label>
-            <input type="text" className="form-input" style={{width: '100px'}} value={version} onChange={(e) => setVersion(e.target.value)} />
+            <input type="text" className="form-input" style={{ width: '100px' }} value={version} onChange={(e) => setVersion(e.target.value)} />
           </div>
 
           {/* Botón Guardar */}
           <div className="actions-footer">
-            <button 
+            <button
               className={`btn-analizar ${isFormValid ? 'active' : ''}`}
               disabled={!isFormValid || loading}
               onClick={handleGuardar}
